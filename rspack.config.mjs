@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
+import { ExpoModulesPlugin } from '@callstack/repack-plugin-expo-modules';
 import { DefinePlugin, ProvidePlugin } from '@rspack/core';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
@@ -69,6 +70,7 @@ export default Repack.defineRspackConfig((env) => {
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
         '__DEV__': JSON.stringify(isDev),
       }),
+      new ExpoModulesPlugin(),
       new Repack.RepackPlugin(),
       new Repack.plugins.ModuleFederationPluginV2({
         name: 'esad_template_host',

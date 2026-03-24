@@ -1,4 +1,10 @@
 {
   "name": "esad-template-host",
-  "displayName": "esad-template-host"
+  "displayName": "esad-template-host",
+  "expo": {
+    "name": "esad-template-host",
+    "slug": "esad-template-host",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"]
+  }
 }
