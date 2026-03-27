@@ -63,4 +63,4 @@ ScriptManager.shared.addResolver(async (scriptId, caller) => {
   return undefined;
 });
 
-AppRegistry.registerComponent('esad-template-host', () => App);
+AppRegistry.registerComponent('main', () => App);
