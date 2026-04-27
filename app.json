@@ -8,6 +8,9 @@
     ],
     "android": {
       "package": "com.anonymous.esadtemplatehost"
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
