@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text, TextStyle, StyleSheet } from 'react-native';
-import { Theme } from '../theme/tokens';
+import { Text, TextStyle, StyleSheet, StyleProp } from 'react-native';
+import { Theme } from '../../theme/tokens';
 
 interface TypographyProps {
   variant?: keyof typeof Theme.typography;
@@ -8,7 +8,7 @@ interface TypographyProps {
   align?: 'left' | 'center' | 'right';
   bold?: boolean;
   children: React.ReactNode;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
 }
 
 export const Typography: React.FC<TypographyProps> = ({
