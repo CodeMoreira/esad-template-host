@@ -48,3 +48,6 @@ yarn-error.log*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# lockfiles
+package-lock.json
