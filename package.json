@@ -12,8 +12,7 @@
   },
   "overrides": {
     "axios": "1.15.0",
-    "@xmldom/xmldom": "0.9.9",
-    "react-native-screens": "~3.35.0"
+    "@xmldom/xmldom": "0.9.9"
   },
   "dependencies": {
     "@codemoreira/esad": "next",
@@ -29,7 +28,7 @@
     "react": "18.3.1",
     "react-native": "0.76.9",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~3.35.0",
+    "react-native-screens": "^4.24.0",
     "react-native-url-polyfill": "^3.0.0"
   },
   "devDependencies": {
