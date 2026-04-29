@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeRemote } from '../components/Remote/SafeRemote';
@@ -6,28 +6,26 @@ import { Typography } from '../components/Typography/Typography';
 import { Theme } from '../theme/tokens';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
-// Dynamic import — loaded by the ScriptManager resolver at runtime.
-// Replace 'SampleModule/MainScreen' with the real exposed module path.
-const RemoteScreen = lazy(() => import('SampleModule/MainScreen'));
-
 type Props = NativeStackScreenProps<RootStackParamList, 'ModuleViewer'>;
 
 export const ModuleViewerScreen: React.FC<Props> = ({ route }) => {
-  const { moduleName } = route.params;
+  const { moduleId, moduleName } = route.params;
 
   return (
     <View style={styles.container}>
       <Typography variant="caption" color={Theme.colors.gray1} style={styles.label}>
-        Loading remote module:
+        Accessing Remote Ecosystem:
       </Typography>
-      {/**
-       * SafeRemote isolates the federated component:
-       * — Error Boundary: catches crashes and shows a retry UI
-       * — Suspense:       shows SmartSkeleton while the bundle resolves
-       */}
-      <SafeRemote title={moduleName}>
-        <RemoteScreen />
-      </SafeRemote>
+
+      {/* 
+        SafeRemote handles the dynamic import of the moduleId passed via route.
+        No static imports required. Mega-Zero-Config.
+      */}
+      <SafeRemote 
+        moduleId={moduleId} 
+        modulePath="./MainScreen" 
+        title={moduleName} 
+      />
     </View>
   );
 };

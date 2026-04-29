@@ -1,5 +1,6 @@
-import React, { Component, ErrorInfo, ReactNode, Suspense } from 'react';
+import React, { Component, ErrorInfo, ReactNode, Suspense, useMemo, lazy, useEffect, ComponentType } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { loadRemote, registerRemotes } from '@module-federation/runtime';
 import { Typography } from '../Typography/Typography';
 import { SmartSkeleton } from '../Skeleton/SmartSkeleton';
 import { Theme } from '../../theme/tokens';
@@ -24,7 +25,7 @@ class SafeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[SafeRemote] Crash detected:', error, errorInfo);
+    console.error('[SafeRemote] Dynamic import failed or component crashed:', error, errorInfo);
   }
 
   render() {
@@ -33,15 +34,11 @@ class SafeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
         <View style={styles.errorContainer}>
           <Typography variant="h3" color={Theme.colors.error}>Module Unavailable</Typography>
           <Typography variant="caption" color={Theme.colors.gray1} align="center" style={{ marginTop: 8 }}>
-            This feature crashed or failed to load.
+            Failed to load or execute the remote module.
           </Typography>
           <TouchableOpacity 
             style={styles.retryButton} 
-            onPress={() => {
-              // Try to clear ScriptManager cache to force a fresh network hit on the next Suspense bound
-              try { require('@callstack/repack/client').ScriptManager.shared.invalidateScripts(); } catch(e){}
-              this.setState({ hasError: false });
-            }}
+            onPress={() => this.setState({ hasError: false })}
           >
             <Typography variant="button">Retry</Typography>
           </TouchableOpacity>
@@ -54,17 +51,44 @@ class SafeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 }
 
 interface SafeRemoteProps {
-  children: ReactNode;
+  moduleId: string;
+  modulePath?: string; // Default to './MainScreen' if not provided
   title?: string;
 }
 
-export const SafeRemote: React.FC<SafeRemoteProps> = ({ children, title }) => {
+/**
+ * SafeRemote — The heart of ESAD Dynamic Loading.
+ * It uses Module Federation v2 (MFv2) loadRemote for pure dynamic resolution.
+ */
+export const SafeRemote: React.FC<SafeRemoteProps> = ({ moduleId, modulePath = './MainScreen', title }) => {
+  
+  useEffect(() => {
+    // Register the remote dynamically in the MFv2 runtime.
+    // The ScriptManager resolver (src/api/resolver.ts) will handle the actual URL resolution.
+    registerRemotes([
+      {
+        name: moduleId,
+        entry: moduleId, // Pointing to moduleId; resolver will intercept and provide the bundle URL
+      },
+    ]);
+  }, [moduleId]);
+
+  // Use MFv2 loadRemote instead of deprecated Federated.importModule
+  const FederatedComponent = useMemo(() => {
+    // MFv2 syntax: remoteName/exposedModule
+    const cleanPath = modulePath.startsWith('./') ? modulePath.slice(2) : modulePath;
+    
+    return lazy(() => 
+      loadRemote(`${moduleId}/${cleanPath}`) as Promise<{ default: ComponentType<any> }>
+    );
+  }, [moduleId, modulePath]);
+
   return (
     <View style={styles.container}>
       {title && <Typography variant="h3" style={styles.title}>{title}</Typography>}
       <SafeErrorBoundary>
         <Suspense fallback={<SmartSkeleton height={200} />}>
-          {children}
+          <FederatedComponent />
         </Suspense>
       </SafeErrorBoundary>
     </View>
