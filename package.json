@@ -15,7 +15,7 @@
     "@xmldom/xmldom": "0.9.9"
   },
   "dependencies": {
-    "@codemoreira/esad": "2.0.1-0",
+    "@codemoreira/esad": "next",
     "@module-federation/error-codes": "^2.2.3",
     "@module-federation/runtime": "^2.2.3",
     "@module-federation/sdk": "^2.2.3",
