@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, StyleSheet, ViewStyle, StyleProp, DimensionValue } from 'react-native';
 import { Theme } from '../../theme/tokens';
 
 interface SmartSkeletonProps {
-  width?: number | string;
-  height?: number | string;
+  width?: DimensionValue;
+  height?: DimensionValue;
   radius?: keyof typeof Theme.radius;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const SmartSkeleton: React.FC<SmartSkeletonProps> = ({
@@ -39,12 +39,12 @@ export const SmartSkeleton: React.FC<SmartSkeletonProps> = ({
       style={[
         styles.skeleton,
         {
-          width,
-          height,
+          width: width as any, // Cast to any because Animated.View style types can be tricky with DimensionValue
+          height: height as any,
           borderRadius: Theme.radius[radius],
           opacity,
         },
-        style,
+        style as any,
       ]}
     />
   );

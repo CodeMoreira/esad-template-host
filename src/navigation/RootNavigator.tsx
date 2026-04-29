@@ -36,7 +36,7 @@ const MainNavigator = () => (
     screenOptions={{
       headerStyle: { backgroundColor: Theme.colors.black },
       headerTintColor: Theme.colors.white,
-      headerTitleStyle: Theme.typography.h3,
+      headerTitleStyle: Theme.typography.h3 as any, // Cast to avoid strict StyleProp mismatch in some RN versions
       contentStyle: { backgroundColor: Theme.colors.darker },
     }}>
     <MainStack.Screen
