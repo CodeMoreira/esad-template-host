@@ -23,7 +23,6 @@ export const ModuleViewerScreen: React.FC<Props> = ({ route }) => {
       */}
       <SafeRemote 
         moduleId={moduleId} 
-        modulePath="./MainScreen" 
         title={moduleName} 
       />
     </View>

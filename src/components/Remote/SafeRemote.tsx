@@ -52,7 +52,7 @@ class SafeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 
 interface SafeRemoteProps {
   moduleId: string;
-  modulePath?: string; // Default to './MainScreen' if not provided
+  modulePath?: string; // Default to './Main' if not provided
   title?: string;
 }
 
@@ -60,11 +60,11 @@ interface SafeRemoteProps {
  * SafeRemote — The heart of ESAD Dynamic Loading.
  * It uses Module Federation v2 (MFv2) loadRemote for pure dynamic resolution.
  */
-export const SafeRemote: React.FC<SafeRemoteProps> = ({ moduleId, modulePath = './MainScreen', title }) => {
+export const SafeRemote: React.FC<SafeRemoteProps> = ({ moduleId, modulePath = './Main', title }) => {
   
   useEffect(() => {
     // Register the remote dynamically in the MFv2 runtime.
-    // The ScriptManager resolver (src/api/resolver.ts) will handle the actual URL resolution.
+    // The ScriptManager resolver (index.js) will handle the actual URL resolution.
     registerRemotes([
       {
         name: moduleId,

@@ -10,7 +10,8 @@
       "package": "com.anonymous.esadtemplatehost"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "@codemoreira/esad/expo-plugin"
     ]
   }
 }

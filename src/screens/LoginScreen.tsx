@@ -17,20 +17,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { signIn } = useAuth();
-  const [token, setToken] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!token.trim()) {
-      Alert.alert('Error', 'Please enter your auth token.');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
     setLoading(true);
     try {
-      await signIn(token.trim());
+      await signIn(email.trim(), password.trim());
       navigation.replace('Modules');
     } catch (e: any) {
-      Alert.alert('Login Failed', e.message);
+      Alert.alert('Login Failed', e.message || 'Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Typography variant="h1" align="center">
+      <Typography variant="h1" align="center" color="#fff">
         ESAD SuperApp
       </Typography>
       <Typography
@@ -46,30 +47,41 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         color={Theme.colors.gray1}
         align="center"
         style={styles.subtitle}>
-        Enter your token to access the ecosystem
+        Access the ecosystem via Simple-CDN
       </Typography>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Auth token"
-        placeholderTextColor={Theme.colors.gray2}
-        value={token}
-        onChangeText={setToken}
-        autoCapitalize="none"
-        autoCorrect={false}
-        secureTextEntry
-      />
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
+          placeholderTextColor={Theme.colors.gray2}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoCorrect={false}
+        />
 
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color={Theme.colors.white} />
-        ) : (
-          <Typography variant="button">Sign In</Typography>
-        )}
-      </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor={Theme.colors.gray2}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={Theme.colors.white} />
+          ) : (
+            <Typography variant="button">Sign In</Typography>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -84,6 +96,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: Theme.spacing.s,
     marginBottom: Theme.spacing.xl,
+  },
+  form: {
+    width: '100%',
   },
   input: {
     backgroundColor: Theme.colors.medium,
@@ -100,6 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: Theme.radius.m,
     padding: Theme.spacing.m,
     alignItems: 'center',
+    marginTop: Theme.spacing.m,
   },
   buttonDisabled: {
     opacity: 0.5,

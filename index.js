@@ -1,7 +1,25 @@
-/** @format */
-import { AppRegistry } from 'react-native';
+import { AppRegistry, Platform } from 'react-native';
+import { ScriptManager } from '@callstack/repack/client';
 import App from './App';
+import { name as appName } from './app.json';
+import { RemoteConfig } from './src/services/RemoteConfig';
 
-console.log('App starting in JS...');
+// ESAD Dynamic Resolver
+// Automatically resolves bundles using URLs and Tokens from RemoteConfig.
+ScriptManager.shared.addResolver(async (scriptId, caller) => {
+  const url = RemoteConfig.getRemoteUrl(scriptId);
 
-AppRegistry.registerComponent('main', () => App);
+  if (url) {
+    return {
+      url,
+      query: {
+        platform: Platform.OS,
+      },
+      headers: RemoteConfig.getHeaders(),
+    };
+  }
+
+  return undefined;
+});
+
+AppRegistry.registerComponent(appName, () => App);

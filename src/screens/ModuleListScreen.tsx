@@ -4,33 +4,53 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useESADState } from '@codemoreira/esad/client';
 import { Typography } from '../components/Typography/Typography';
 import { SmartSkeleton } from '../components/Skeleton/SmartSkeleton';
 import { Theme } from '../theme/tokens';
-import { getRegistry, RemoteModule } from '../api/registry';
+import { RemoteConfig } from '../services/RemoteConfig';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Modules'>;
 
+interface ModuleItem {
+  id: string;
+  name: string;
+}
+
 export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
-  const [modules, setModules] = useState<RemoteModule[]>([]);
+  const [modules, setModules] = useState<ModuleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async (silent = false) => {
+  // SHARED STATE: Reactive counter and user
+  const [counter] = useESADState<number>('global_counter', 0);
+  const [authUser] = useESADState<{ name: string } | null>('auth_user', null);
+
+  const load = (silent = false) => {
     if (!silent) setLoading(true);
     setError(null);
+
     try {
-      const data = await getRegistry();
-      setModules(data);
+      // In this architecture, modules are pre-populated in RemoteConfig during Login
+      const remotesMap = RemoteConfig.getAllRemotes();
+      const modulesList = Object.keys(remotesMap).map(id => ({
+        id,
+        name: id.replace(/-/g, ' ').toUpperCase()
+      }));
+
+      // Simulate a small delay to showcase the Smart Skeleton (realistic UX)
+      setTimeout(() => {
+        setModules(modulesList);
+        setLoading(false);
+        setRefreshing(false);
+      }, 600);
     } catch (e: any) {
-      setError(e.message);
-    } finally {
+      setError(e.message || 'Failed to load modules');
       setLoading(false);
       setRefreshing(false);
     }
@@ -54,10 +74,10 @@ export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
   if (error) {
     return (
       <View style={styles.center}>
-        <Typography variant="h3" color={Theme.colors.error}>Registry Unreachable</Typography>
+        <Typography variant="h3" color={Theme.colors.error}>Oops! Something went wrong</Typography>
         <Typography color={Theme.colors.gray1} style={{ marginTop: 8 }}>{error}</Typography>
         <TouchableOpacity style={styles.retryBtn} onPress={() => load()}>
-          <Typography variant="button">Retry</Typography>
+          <Typography variant="button">Try Again</Typography>
         </TouchableOpacity>
       </View>
     );
@@ -68,6 +88,20 @@ export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
       <FlatList
         data={modules}
         keyExtractor={item => item.id}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <View style={styles.stateCard}>
+              <Typography variant="caption" color={Theme.colors.primary}>GLOBAL STATE</Typography>
+              <Typography variant="h2" color="#fff" style={{ marginVertical: 4 }}>
+                {counter}
+              </Typography>
+              <Typography variant="caption" color={Theme.colors.gray1}>
+                Shared with all Modules • User: {authUser?.name || 'Guest'}
+              </Typography>
+            </View>
+            <Typography variant="h3" style={{ marginBottom: 16 }}>Available Modules</Typography>
+          </View>
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -79,15 +113,15 @@ export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
           <TouchableOpacity
             style={styles.card}
             onPress={() => navigation.navigate('ModuleViewer', { moduleId: item.id, moduleName: item.name })}>
-            <Typography variant="h3">{item.name}</Typography>
+            <Typography variant="h3" color="#fff">{item.name}</Typography>
             <Typography variant="caption" color={Theme.colors.gray1}>
-              {item.id} • {item.active_version ?? 'no version'}
+              {item.id} • Active Version
             </Typography>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.center}>
-            <Typography color={Theme.colors.gray1}>No modules registered yet.</Typography>
+            <Typography color={Theme.colors.gray1}>No modules registered for this user.</Typography>
           </View>
         }
       />
@@ -97,6 +131,16 @@ export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Theme.colors.darker, padding: Theme.spacing.m },
+  header: { marginBottom: Theme.spacing.l },
+  stateCard: {
+    backgroundColor: Theme.colors.medium,
+    borderRadius: Theme.radius.m,
+    padding: Theme.spacing.m,
+    marginBottom: Theme.spacing.l,
+    borderWidth: 1,
+    borderColor: Theme.colors.primary,
+    borderLeftWidth: 5,
+  },
   card: {
     backgroundColor: Theme.colors.medium,
     borderRadius: Theme.radius.m,
