@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useESADState } from '@codemoreira/esad/client';
 import * as SecureStore from 'expo-secure-store';
+import httpClient from '../api/httpClient';
 import { RemoteConfig } from '../services/RemoteConfig';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,10 +43,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserRemotes = async (token: string) => {
     try {
-      const response = await fetch(`${REGISTRY_URL}/api/v2/modules`, {
+      const response = await httpClient.get(`${REGISTRY_URL}/api/v2/modules`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await response.json();
+      const data = response.data;
       
       // Data format from Simple-CDN: { modules: { "id": "url", ... } }
       RemoteConfig.setRemotes(data.modules || {});
@@ -73,15 +74,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signIn = async (email: string, password: string) => {
     // REAL LOGIN: Call simple-cdn auth endpoint
-    const response = await fetch(`${REGISTRY_URL}/api/v2/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    const response = await httpClient.post(`${REGISTRY_URL}/api/v2/auth/login`, {
+      email, password
     });
 
-    if (!response.ok) throw new Error('Authentication failed');
-
-    const data = await response.json();
+    const data = response.data;
     const newUser: AuthUser = {
       id: data.user.id,
       name: data.user.name,
