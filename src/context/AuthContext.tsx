@@ -22,7 +22,7 @@ interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -43,13 +43,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserRemotes = async (token: string) => {
     try {
-      const response = await httpClient.get(`${REGISTRY_URL}/api/v2/modules`, {
+      const response = await httpClient.get(`${REGISTRY_URL}/modules`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = response.data;
-      
-      // Data format from Simple-CDN: { modules: { "id": "url", ... } }
-      RemoteConfig.setRemotes(data.modules || {});
+
+      // Data format from Simple-CDN: [ { "id": "...", "urls": { ... } }, ... ]
+      // We need to map this array back to the object format expected by RemoteConfig
+      // Wait! In simple-cdn index.js, it returns an array of module objects.
+      // RemoteConfig.setRemotes expects: { "module_id": "url", ... }
+      const formattedRemotes: Record<string, string> = {};
+      data.forEach((m: any) => {
+        // use active_version url or fallback to staging/dev depending on logic
+        if (m.urls.production) formattedRemotes[m.id] = m.urls.production;
+        else if (m.urls.staging) formattedRemotes[m.id] = m.urls.staging;
+        else if (m.urls.dev) formattedRemotes[m.id] = m.urls.dev;
+      });
+
+      RemoteConfig.setRemotes(formattedRemotes);
     } catch (error) {
       console.error('[ESAD] Failed to fetch remotes from registry:', error);
     }
@@ -62,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
         setGlobalUser(parsedUser);
-        
+
         // Sync Re.Pack
         RemoteConfig.setAuthToken(parsedUser.token);
         await fetchUserRemotes(parsedUser.token);
@@ -72,10 +83,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     restoreSession();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     // REAL LOGIN: Call simple-cdn auth endpoint
-    const response = await httpClient.post(`${REGISTRY_URL}/api/v2/auth/login`, {
-      email, password
+    const response = await httpClient.post(`${REGISTRY_URL}/auth/login`, {
+      username, password
     });
 
     const data = response.data;
@@ -88,7 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // 1. Persist locally
     await SecureStore.setItemAsync('esad_user', JSON.stringify(newUser));
-    
+
     // 2. Update UI & Global State
     setUser(newUser);
     setGlobalUser(newUser);

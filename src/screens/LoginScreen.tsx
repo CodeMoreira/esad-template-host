@@ -17,18 +17,18 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
+    if (!username.trim() || !password.trim()) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
     setLoading(true);
     try {
-      await signIn(email.trim(), password.trim());
+      await signIn(username.trim(), password.trim());
       navigation.replace('Modules');
     } catch (e: any) {
       Alert.alert('Login Failed', e.message || 'Please check your credentials.');
@@ -53,12 +53,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.form}>
         <TextInput
           style={styles.input}
-          placeholder="E-mail"
+          placeholder="Username"
           placeholderTextColor={Theme.colors.gray2}
-          value={email}
-          onChangeText={setEmail}
+          value={username}
+          onChangeText={setUsername}
           autoCapitalize="none"
-          keyboardType="email-address"
+          keyboardType="default"
           autoCorrect={false}
         />
 
