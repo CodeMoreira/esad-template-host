@@ -29,7 +29,7 @@ export const ModuleListScreen: React.FC<Props> = ({ navigation }) => {
 
   // SHARED STATE: Reactive counter and user
   const [counter] = useESADState<number>('global_counter', 0);
-  const [authUser] = useESADState<{ name: string } | null>('auth_user', null);
+  const [authUser] = useESADState<any | null>('auth_user', null);
 
   const load = (silent = false) => {
     if (!silent) setLoading(true);

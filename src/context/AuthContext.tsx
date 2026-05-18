@@ -15,7 +15,8 @@ import { RemoteConfig } from '../services/RemoteConfig';
 interface AuthUser {
   id: string;
   name: string;
-  email: string;
+  role: string;
+  target_environment: string;
   token: string;
 }
 
@@ -48,16 +49,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       const data = response.data;
 
-      // Data format from Simple-CDN: [ { "id": "...", "urls": { ... } }, ... ]
-      // We need to map this array back to the object format expected by RemoteConfig
-      // Wait! In simple-cdn index.js, it returns an array of module objects.
-      // RemoteConfig.setRemotes expects: { "module_id": "url", ... }
+      // Data format from Simple-CDN: [ { "id": "...", "name": "...", "url": "..." }, ... ]
       const formattedRemotes: Record<string, string> = {};
       data.forEach((m: any) => {
-        // use active_version url or fallback to staging/dev depending on logic
-        if (m.urls.production) formattedRemotes[m.id] = m.urls.production;
-        else if (m.urls.staging) formattedRemotes[m.id] = m.urls.staging;
-        else if (m.urls.dev) formattedRemotes[m.id] = m.urls.dev;
+        if (m.url) formattedRemotes[m.id] = m.url;
       });
 
       RemoteConfig.setRemotes(formattedRemotes);
@@ -92,8 +87,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = response.data;
     const newUser: AuthUser = {
       id: data.user.id,
-      name: data.user.name,
-      email: data.user.email,
+      name: data.user.username,
+      role: data.user.role,
+      target_environment: data.user.target_environment,
       token: data.token
     };
 
